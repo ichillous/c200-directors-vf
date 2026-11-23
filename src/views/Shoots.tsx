@@ -1,7 +1,8 @@
 import { useState, type ChangeEvent } from 'react';
 import { cleanShootName, chooseDest, createShoot, dayNote, framesFor, go, set, todayStr, useApp, type State } from '../store';
 import { FOLDERS, type Folder, type Shoot } from '../types';
-import { readUserDataFile } from '../userdata';
+import { log } from '../diag';
+import { errorTag, readUserDataFile } from '../userdata';
 
 function countNote(s: State, id: string): string {
   const n = framesFor(s, id);
@@ -63,9 +64,11 @@ export function Shoots() {
     if (!file) return;
     try {
       const data = await readUserDataFile(file);
+      log('I', 'import_ok', { shoots: data.shoots.length, lists: data.shotLists.length, planned: data.planned.length, bytes: file.size });
       set({ data });
       setNote(`Imported ${data.shoots.length} shoots and ${data.shotLists.length} shot ${data.shotLists.length === 1 ? 'list' : 'lists'}.`);
     } catch (err) {
+      log('W', 'import_failed', { reason: errorTag(err, 'reason') ?? 'read', bytes: file.size });
       setNote(err instanceof Error ? err.message : 'That file could not be imported.');
     }
   }

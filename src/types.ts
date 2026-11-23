@@ -7,6 +7,9 @@ export type View = 'finder' | 'bank' | 'shoots' | 'board' | 'kit';
 
 export const TAGS = ['Interview', 'B-roll', 'Vérité', 'Establishing'];
 
+/** Items on the pre-roll check. */
+export const KIT_IDS = ['sd', 'batt', 'nd', 'lens', 'in1', 'in2', 'cans'];
+
 /** A shoot folder, named the way it sits in FOOTAGE on Drive. */
 export interface Shoot {
   id: string;

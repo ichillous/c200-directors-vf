@@ -1,5 +1,5 @@
-import { Capacitor } from '@capacitor/core';
 import { strToU8, zipSync } from 'fflate';
+import { errorTag, saveFile, tagged } from './files';
 import { loadImage } from './images';
 import { clampFocal, frameGeometry } from './optics';
 import { destName, get, todayStr } from './store';
@@ -7,6 +7,8 @@ import { FOLDERS, type Folder, type Planned, type Shoot, type Shot, type ShotLis
 
 // Your shoots and shot lists come in from a JSON file and stay on this device.
 // Nothing personal ships with the app. README.md documents the file format.
+
+export { errorTag, saveFile };
 
 const str = (v: unknown, max = 200): string => (typeof v === 'string' ? v.slice(0, max) : '');
 const id = (v: unknown, fallback: string): string => str(v, 60).replace(/[^A-Za-z0-9_-]/g, '') || fallback;
@@ -29,9 +31,9 @@ function parseShot(raw: unknown, i: number): Shot {
 
 /** Check and tidy an imported file. Throws an Error with a plain-language message. */
 export function parseUserData(input: unknown): UserData {
-  if (!input || typeof input !== 'object') throw new Error('That file is not a viewfinder data file.');
+  if (!input || typeof input !== 'object') throw tagged(new Error('That file is not a viewfinder data file.'), 'reason', 'not_object');
   const raw = input as Record<string, unknown>;
-  if (raw.version !== 1) throw new Error('That file is for a different version of the app.');
+  if (raw.version !== 1) throw tagged(new Error('That file is for a different version of the app.'), 'reason', 'version');
   const arr = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
 
   const shotLists: ShotList[] = arr(raw.shotLists).slice(0, 20).map((l, i) => {
@@ -76,7 +78,7 @@ export async function readUserDataFile(file: File): Promise<UserData> {
   try {
     json = JSON.parse(await file.text());
   } catch {
-    throw new Error('That file could not be read as JSON.');
+    throw tagged(new Error('That file could not be read as JSON.'), 'reason', 'json');
   }
   return parseUserData(json);
 }
@@ -107,38 +109,11 @@ export async function exportFrames(): Promise<{ blob: Blob; name: string; count:
     });
   }
   files['frames.json'] = strToU8(JSON.stringify({ camera: 'Canon C200', lens: 'Sigma 18-35mm f/1.8 Art', frames: rows }, null, 2));
-  const zipped = zipSync(files, { level: 0 });
-  return { blob: new Blob([zipped], { type: 'application/zip' }), name: `c200-frames-${todayStr()}.zip`, count: rows.length };
-}
-
-function toBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result).split(',')[1] ?? '');
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
-}
-
-/**
- * Hand a file to the person: the Android share sheet in the installed app,
- * a normal download in a browser.
- */
-export async function saveFile(blob: Blob, name: string): Promise<'shared' | 'downloaded'> {
-  if (Capacitor.isNativePlatform()) {
-    const { Filesystem, Directory } = await import('@capacitor/filesystem');
-    const { Share } = await import('@capacitor/share');
-    const written = await Filesystem.writeFile({ path: name, data: await toBase64(blob), directory: Directory.Cache });
-    await Share.share({ title: name, files: [written.uri] });
-    return 'shared';
+  let zipped: ReturnType<typeof zipSync>;
+  try {
+    zipped = zipSync(files, { level: 0 });
+  } catch (err) {
+    throw tagged(err, 'stage', 'zip');
   }
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
-  return 'downloaded';
+  return { blob: new Blob([zipped], { type: 'application/zip' }), name: `c200-frames-${todayStr()}.zip`, count: rows.length };
 }
