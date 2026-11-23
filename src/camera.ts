@@ -8,6 +8,7 @@ export function useCamera(active: boolean, deviceId: string) {
   const [status, setStatus] = useState<CameraStatus>('starting');
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [attempt, setAttempt] = useState(0);
+  const [picture, setPicture] = useState('');
 
   useEffect(() => {
     if (!active) return;
@@ -36,6 +37,14 @@ export function useCamera(active: boolean, deviceId: string) {
           void el.play().catch(() => undefined);
         }
         setStatus('live');
+        const track = st.getVideoTracks()[0];
+        // Phones often start a web camera at a fixed focus. Ask for continuous autofocus where the camera offers it.
+        const caps = (track.getCapabilities?.() ?? {}) as { focusMode?: string[] };
+        if (caps.focusMode?.includes('continuous')) {
+          void track.applyConstraints({ advanced: [{ focusMode: 'continuous' } as MediaTrackConstraintSet] }).catch(() => undefined);
+        }
+        const got = track.getSettings();
+        setPicture(got.width && got.height ? `${got.width} × ${got.height}` : '');
         void navigator.mediaDevices.enumerateDevices().then((all) => {
           if (!cancelled) setDevices(all.filter((d) => d.kind === 'videoinput'));
         });
@@ -50,5 +59,5 @@ export function useCamera(active: boolean, deviceId: string) {
     };
   }, [active, deviceId, attempt]);
 
-  return { videoRef, status, devices, retry: () => setAttempt((a) => a + 1) };
+  return { videoRef, status, devices, picture, retry: () => setAttempt((a) => a + 1) };
 }

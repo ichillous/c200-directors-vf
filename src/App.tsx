@@ -53,16 +53,21 @@ export default function App() {
   return (
     <div className="stage">
       <div className="app" style={{ transform: `scale(${scale})` }}>
+        {/* Two buttons above the middle and two below: on the phone, the front-camera cutout sits in the gap. */}
         <nav className="rail" aria-label="Screens">
-          {items.map((it) => {
-            const on = s.view === it.id || (it.id === 'shoots' && s.view === 'board');
-            return (
-              <button key={it.id} type="button" className={`rail__item ${on ? 'is-on' : ''}`} aria-current={on ? 'page' : undefined} onClick={() => go(it.id)}>
-                <Icon d={it.icon} size={22} />
-                <span>{it.label}</span>
-              </button>
-            );
-          })}
+          {[items.slice(0, 2), items.slice(2)].map((group, g) => (
+            <div key={g} className="rail__group">
+              {group.map((it) => {
+                const on = s.view === it.id || (it.id === 'shoots' && s.view === 'board');
+                return (
+                  <button key={it.id} type="button" className={`rail__item ${on ? 'is-on' : ''}`} aria-current={on ? 'page' : undefined} onClick={() => go(it.id)}>
+                    <Icon d={it.icon} size={22} />
+                    <span>{it.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </nav>
         {s.view === 'finder' && <Finder />}
         {s.view === 'bank' && <Bank />}

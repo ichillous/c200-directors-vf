@@ -210,7 +210,7 @@ export function Finder() {
               <button type="button" className={`chip ${s.fov === PHONE_FOV.main ? 'is-on' : ''}`} onClick={() => set({ fov: PHONE_FOV.main })}>Main, {PHONE_FOV.main}°</button>
               <button type="button" className={`chip ${s.fov === PHONE_FOV.ultrawide ? 'is-on' : ''}`} onClick={() => set({ fov: PHONE_FOV.ultrawide })}>Ultrawide, {PHONE_FOV.ultrawide}°</button>
             </div>
-            <p className="sheet__note">Pixel 10 Pro figures. If the lines look tighter or wider than the C200’s picture, nudge the angle until they match.</p>
+            <p className="sheet__note">Pixel 10 Pro figures. If the lines look tighter or wider than the C200’s picture, nudge the angle until they match.{cam.picture ? ` The camera is sending ${cam.picture}.` : ''}</p>
             {cam.devices.length > 1 && (
               <>
                 <span className="sheet__label">Which camera</span>
