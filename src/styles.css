@@ -163,6 +163,15 @@ h1, h2 { margin: 0; }
 .detail__row > * { flex: 1 1 0; min-width: 0; }
 .undo { flex: none; display: flex; align-items: center; justify-content: space-between; padding-left: 12px; border: 1px solid var(--seam); border-radius: 6px; background: var(--barrel); font-size: 13px; }
 .undo button { height: 44px; padding: 0 14px; border: 0; background: transparent; color: var(--index); font-weight: 600; font-size: 13px; }
+.undo button:disabled { color: var(--fade); cursor: default; }
+.undo__actions { flex: none; display: flex; }
+.undo--float { position: absolute; left: 8px; right: 8px; top: 8px; z-index: 1; }
+
+/* Shown when the screen itself failed */
+.oops { padding: 32px; max-width: 420px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.oops h1 { font: 700 30px/1.1 var(--narrow); }
+.oops p { margin: 0; font-size: 15px; line-height: 1.45; color: var(--soft); }
+.oops__row { display: flex; gap: 8px; }
 
 /* Shoots */
 .shoots__preview { flex: 1 1 0; min-width: 0; text-align: right; font-size: 12px; color: var(--fade); }

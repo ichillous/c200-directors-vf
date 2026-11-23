@@ -5,9 +5,14 @@ import { VitePWA } from 'vite-plugin-pwa';
 // Relative base so the same build works on GitHub Pages (a sub-path) and at a domain root.
 // The Android app bundles its own files, so it skips the service worker.
 const native = process.env.NATIVE === '1';
+// The commit goes into the log file header so a report can be matched to its build.
+const commit = (process.env.GITHUB_SHA ?? '').slice(0, 7) || 'dev';
 
 export default defineConfig({
   base: './',
+  define: { __COMMIT__: JSON.stringify(commit) },
+  // Keep function names in the Android build so crash stacks in the logs stay readable.
+  esbuild: native ? { minifyIdentifiers: false } : undefined,
   plugins: [
     react(),
     !native && VitePWA({

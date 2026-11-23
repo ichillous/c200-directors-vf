@@ -1,3 +1,4 @@
+import { log } from '../diag';
 import { cameraShots, destinations, frameShot, go, set, useApp } from '../store';
 import type { Shot } from '../types';
 import { Icon, ICONS } from '../ui';
@@ -63,7 +64,7 @@ export function Board() {
                 const framed = refs(sh.no) > 0;
                 const on = sh.no === shot?.no;
                 return (
-                  <button key={sh.no} type="button" className={`shot ${on ? 'is-on' : framed ? 'is-framed' : ''}`} aria-pressed={on} aria-label={`Shot ${sh.no}, ${sh.name}, ${framed ? 'framed' : 'not framed yet'}`} onClick={() => set({ shot: sh.no })}>
+                  <button key={sh.no} type="button" className={`shot ${on ? 'is-on' : framed ? 'is-framed' : ''}`} aria-pressed={on} aria-label={`Shot ${sh.no}, ${sh.name}, ${framed ? 'framed' : 'not framed yet'}`} onClick={() => { log('I', 'board_shot_pick', { idx: cams.indexOf(sh) }); set({ shot: sh.no }); }}>
                     <b>{sh.no}</b>
                     <small>{sh.lo === sh.hi ? sh.lo : `${sh.lo}–${sh.hi}`}</small>
                   </button>

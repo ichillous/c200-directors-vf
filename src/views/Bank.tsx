@@ -3,7 +3,8 @@ import { frameGeometry } from '../optics';
 import { deleteFrame, destinations, destName, go, patchFrame, reframe, set, undoDelete, useApp, type State } from '../store';
 import { TAGS, type Frame } from '../types';
 import { Option, PickerButton, Sheet, Thumb } from '../ui';
-import { exportFrames, saveFile } from '../userdata';
+import { log, logError } from '../diag';
+import { errorTag, exportFrames, saveFile } from '../userdata';
 
 function describe(s: State, f: Frame): string {
   if (f.shot) {
@@ -31,11 +32,19 @@ export function Bank() {
 
   async function onExport() {
     setExportNote('Packing the frames.');
+    const frames = s.frames.length;
+    log('I', 'export_start', { frames, images: s.frames.filter((f) => f.hasImage).length });
+    const t0 = performance.now();
+    let bytes = 0;
     try {
       const out = await exportFrames();
+      bytes = out.blob.size;
+      log('I', 'export_built', { bytes, ms: Math.round(performance.now() - t0) });
       const how = await saveFile(out.blob, out.name);
-      setExportNote(how === 'shared' ? `Sent ${out.name}.` : `Saved ${out.name}. Attach it to a chat and Claude can label or pull from it.`);
-    } catch {
+      log('I', 'share_result', { result: how, what: 'frames' });
+      setExportNote(how === 'cancelled' ? 'Nothing was sent.' : how === 'shared' ? `Sent ${out.name}.` : `Saved ${out.name}. Attach it to a chat and Claude can label or pull from it.`);
+    } catch (err) {
+      logError('E', 'export_failed', err, { stage: errorTag(err, 'stage') ?? (bytes ? 'share' : 'zip'), frames, bytes });
       setExportNote('The export did not go out. Try again.');
     }
   }

@@ -59,6 +59,15 @@ Shoots and shot lists come in through **Shoots → Import shoots and shot lists*
 
 A shoot with a full date today or later shows as upcoming. `pos: 0` marks a list entry that needs no camera. Focal lengths outside 18 to 35 are pulled into range. Files named `my-data*.json` are git-ignored so a personal file cannot be committed by accident.
 
+## When something goes wrong
+
+The app keeps a log of what it does and of any crash, so a problem can be traced without guessing.
+
+1. Open **Kit** and tap **Send logs**. If the app closed unexpectedly last time, the viewfinder offers the same button.
+2. Pick the Claude app in the share sheet, or save the `.txt` file and attach it to a chat with Claude.
+
+The file holds the app version, the phone model and Android version, any crashes, and a timed list of what happened: which screen you were on, focal length and format changes, captures, camera starts and errors. Shoots and plans appear only as a kind and a number, and typed names only as a length. It holds no shoot names, places, notes, pictures or file names. The log stays on the phone until you share it.
+
 ## Develop
 
 ```sh

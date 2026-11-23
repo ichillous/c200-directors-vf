@@ -1,9 +1,10 @@
 import { Capacitor } from '@capacitor/core';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useCamera } from '../camera';
+import { log, logError } from '../diag';
 import { saveImage } from '../images';
 import { cropRect, frameGeometry, LENS, PHONE_FOV, SENSOR, type Format } from '../optics';
-import { addFrame, chooseDest, frameSnapshot, currentShot, destinations, destName, go, set, shotListFor, stepShot, useApp } from '../store';
+import { addFrame, chooseDest, dismissCrashNote, frameSnapshot, currentShot, destinations, destName, go, sendDiagnostics, set, shotListFor, stepShot, useApp } from '../store';
 import { TAGS } from '../types';
 import { Icon, ICONS, Option, PickerButton, Sheet } from '../ui';
 
@@ -15,6 +16,8 @@ export function Finder() {
   const s = useApp();
   const [photo, setPhoto] = useState('');
   const [photoFailed, setPhotoFailed] = useState(false);
+  const [crashSending, setCrashSending] = useState(false);
+  const photoMime = useRef('');
   const imgRef = useRef<HTMLImageElement>(null);
   const cam = useCamera(!photo, s.deviceId);
 
@@ -44,11 +47,20 @@ export function Finder() {
     e.target.value = '';
     if (!file) return;
     setPhotoFailed(false);
+    photoMime.current = file.type || 'unknown';
+    log('I', 'photo_load', { mime: photoMime.current, bytes: file.size });
     setPhoto(URL.createObjectURL(file));
+  }
+
+  async function onCrashSend() {
+    setCrashSending(true);
+    await sendDiagnostics();
+    setCrashSending(false);
   }
 
   async function capture() {
     const id = `f${Date.now()}`;
+    const t0 = performance.now();
     // Settings are read now, at the press, so changing them while the picture saves cannot alter this frame.
     const snap = frameSnapshot(s);
     const video = cam.videoRef.current;
@@ -56,6 +68,7 @@ export function Finder() {
     if (!photo && cam.status !== 'blocked' && cam.status !== 'none') {
       for (let i = 0; i < 20 && !video?.videoWidth; i += 1) await new Promise((r) => setTimeout(r, 100));
     }
+    const waitedMs = Math.round(performance.now() - t0);
     const img = imgRef.current;
     let source: CanvasImageSource | null = null;
     let sw = 0;
@@ -66,22 +79,40 @@ export function Finder() {
       source = video; sw = video.videoWidth; sh = video.videoHeight;
     }
     let blob: Blob | null = null;
+    let w = 0;
+    let h = 0;
+    if (!source) log('W', 'capture_no_source', { status: photo ? 'photo' : cam.status, waitedMs });
     if (source) {
       const r = cropRect(sw, sh, geo);
       const canvas = document.createElement('canvas');
       canvas.width = Math.min(1600, Math.round(r.w));
       canvas.height = Math.round((canvas.width * r.h) / r.w);
       canvas.getContext('2d')?.drawImage(source, r.x, r.y, r.w, r.h, 0, 0, canvas.width, canvas.height);
+      w = canvas.width;
+      h = canvas.height;
       blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/jpeg', 0.86));
+      if (!blob) log('E', 'capture_blob_null', { w, h });
     }
+    const bytes = blob?.size ?? 0;
     if (blob) {
       try {
         await saveImage(id, blob);
-      } catch {
+      } catch (err) {
         blob = null; // Storage refused the picture: keep the frame's numbers anyway.
+        let usage: number | undefined;
+        let quota: number | undefined;
+        try {
+          const est = await navigator.storage?.estimate?.();
+          usage = est?.usage;
+          quota = est?.quota;
+        } catch {
+          // No estimate on this device.
+        }
+        logError('E', 'image_save_failed', err, { bytes, frames: s.frames.length, usage, quota });
       }
     }
     addFrame(id, !!blob, snap);
+    log('I', 'frame_saved', { hasImage: !!blob, w, h, bytes: blob ? bytes : 0, ms: Math.round(performance.now() - t0), total: s.frames.length + 1 });
   }
 
   const band = shot ? (shot.lo === shot.hi ? { left: ringX(shot.lo) - 4, width: 8 } : { left: ringX(shot.lo), width: ringX(shot.hi) - ringX(shot.lo) }) : null;
@@ -93,7 +124,7 @@ export function Finder() {
       <div className="finder__left">
         <div className="view">
           <video ref={cam.videoRef} className="view__src" playsInline muted autoPlay hidden={!live} />
-          {photo && <img ref={imgRef} className="view__src" src={photo} alt="The reference photo you loaded" onError={() => { setPhoto(''); setPhotoFailed(true); }} />}
+          {photo && <img ref={imgRef} className="view__src" src={photo} alt="The reference photo you loaded" onError={() => { log('W', 'photo_failed', { mime: photoMime.current }); setPhoto(''); setPhotoFailed(true); }} />}
           <div className="view__frame" style={{ width: `${geo.frac * 100}%`, aspectRatio: String(geo.aspect) }}>
             {s.thirds && (
               <>
@@ -118,6 +149,15 @@ export function Finder() {
             </label>
           </div>
           {s.toast && <div className="view__toast" role="status">{s.toast}</div>}
+          {s.crashNote > 0 && (
+            <div className="undo undo--float" role="status">
+              <span>The app closed unexpectedly last time.</span>
+              <span className="undo__actions">
+                <button type="button" disabled={crashSending} onClick={() => void onCrashSend()}>{crashSending ? 'Packing' : 'Send logs'}</button>
+                <button type="button" onClick={dismissCrashNote}>Dismiss</button>
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="ring">
