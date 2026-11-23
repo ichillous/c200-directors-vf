@@ -66,4 +66,4 @@ npm run preview    # serve the build on http://localhost:4173
 npm run e2e        # browser test with a fake camera (needs Playwright with Chromium; run preview first)
 ```
 
-Pushing to `main` runs the tests and deploys to GitHub Pages.
+Pushing to `main` runs the tests and deploys to GitHub Pages. The first time, turn Pages on in the repo: **Settings → Pages → Source: GitHub Actions**.

@@ -45,7 +45,7 @@ h1, h2 { margin: 0; }
 .muted { color: var(--fade); }
 
 /* Buttons */
-.btn { height: 44px; padding: 0 14px; border: 1px solid var(--edge); border-radius: 6px; background: var(--rib); font-weight: 600; font-size: 14px; line-height: 1; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.btn { flex: none; height: 44px; padding: 0 14px; border: 1px solid var(--edge); border-radius: 6px; background: var(--rib); font-weight: 600; font-size: 14px; line-height: 1; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 .btn--primary { border-color: var(--index); background: var(--index); color: var(--ink); }
 .btn--quiet { border-color: var(--seam); background: var(--barrel); font-weight: 500; font-size: 13px; }
 .btn--ghost { background: transparent; }
