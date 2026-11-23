@@ -1,0 +1,6 @@
+node_modules
+dist
+dev-dist
+*.local
+tests/shots
+my-data*.json

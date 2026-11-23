@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "shoots": [
+    { "id": "old", "folder": "FAMILY", "name": "2020-01-15_Example-Past-Shoot", "date": "2020-01-15", "place": "Example Hall" },
+    { "id": "next", "folder": "FAMILY", "name": "2099-01-01_Example-Upcoming", "date": "2099-01-01" },
+    { "id": "doc", "folder": "PROJECTS", "name": "Example Documentary", "ongoing": true },
+    { "id": "doc1", "folder": "PROJECTS", "name": "2020-02-02_Example_DayOne", "date": "2020-02-02", "nested": true, "place": "Example Square" }
+  ],
+  "planned": [
+    { "id": "short", "name": "Example short film", "note": "4 camera shots", "shotListId": "short-list" },
+    { "id": "series", "name": "Example series", "note": "first episode" }
+  ],
+  "shotLists": [
+    {
+      "id": "short-list",
+      "title": "Example",
+      "summary": "5 entries. 4 camera shots across 2 camera positions.",
+      "note": "A made-up list for testing the app.",
+      "positions": { "1": "By the window", "2": "Across the room" },
+      "shots": [
+        { "no": "01", "name": "Opening wide", "pos": 2, "lo": 18, "hi": 24, "first": 20, "start": "00:00", "sec": 12, "lensNote": "18 to 24 mm, start at 20" },
+        { "no": "02", "name": "Title card", "pos": 0 },
+        { "no": "03", "name": "Portrait", "pos": 1, "lo": 35, "hi": 35, "first": 35, "start": "00:20", "sec": 8 },
+        { "no": "04", "name": "Hands", "pos": 1, "lo": 28, "hi": 35, "first": 28, "start": "00:28", "sec": 5 },
+        { "no": "05", "name": "Closing wide", "pos": 2, "lo": 18, "hi": 18, "first": 18, "start": "00:33", "sec": 20 }
+      ]
+    }
+  ]
+}
