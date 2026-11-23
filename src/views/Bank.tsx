@@ -3,7 +3,7 @@ import { frameGeometry } from '../optics';
 import { deleteFrame, destinations, destName, go, patchFrame, reframe, set, undoDelete, useApp, type State } from '../store';
 import { TAGS, type Frame } from '../types';
 import { Option, PickerButton, Sheet, Thumb } from '../ui';
-import { download, exportFrames } from '../userdata';
+import { exportFrames, saveFile } from '../userdata';
 
 function describe(s: State, f: Frame): string {
   if (f.shot) {
@@ -33,10 +33,10 @@ export function Bank() {
     setExportNote('Packing the frames.');
     try {
       const out = await exportFrames();
-      download(out.blob, out.name);
-      setExportNote(`Saved ${out.name}. Attach it to a chat and Claude can label or pull from it.`);
+      const how = await saveFile(out.blob, out.name);
+      setExportNote(how === 'shared' ? `Sent ${out.name}.` : `Saved ${out.name}. Attach it to a chat and Claude can label or pull from it.`);
     } catch {
-      setExportNote('The export did not finish. Try again.');
+      setExportNote('The export did not go out. Try again.');
     }
   }
 

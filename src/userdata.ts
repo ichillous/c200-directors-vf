@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { strToU8, zipSync } from 'fflate';
 import { loadImage } from './images';
 import { clampFocal, frameGeometry } from './optics';
@@ -110,7 +111,27 @@ export async function exportFrames(): Promise<{ blob: Blob; name: string; count:
   return { blob: new Blob([zipped], { type: 'application/zip' }), name: `c200-frames-${todayStr()}.zip`, count: rows.length };
 }
 
-export function download(blob: Blob, name: string) {
+function toBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1] ?? '');
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+/**
+ * Hand a file to the person: the Android share sheet in the installed app,
+ * a normal download in a browser.
+ */
+export async function saveFile(blob: Blob, name: string): Promise<'shared' | 'downloaded'> {
+  if (Capacitor.isNativePlatform()) {
+    const { Filesystem, Directory } = await import('@capacitor/filesystem');
+    const { Share } = await import('@capacitor/share');
+    const written = await Filesystem.writeFile({ path: name, data: await toBase64(blob), directory: Directory.Cache });
+    await Share.share({ title: name, files: [written.uri] });
+    return 'shared';
+  }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -119,4 +140,5 @@ export function download(blob: Blob, name: string) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
+  return 'downloaded';
 }

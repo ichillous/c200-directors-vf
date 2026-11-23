@@ -12,6 +12,10 @@
     "e2e": "node tests/e2e.mjs"
   },
   "dependencies": {
+    "@capacitor/android": "^6.2.3",
+    "@capacitor/core": "^6.2.3",
+    "@capacitor/filesystem": "^6.0.4",
+    "@capacitor/share": "^6.0.4",
     "@fontsource/archivo": "^5.1.0",
     "@fontsource/archivo-narrow": "^5.1.0",
     "fflate": "^0.8.2",
@@ -20,6 +24,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^6.2.3",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",

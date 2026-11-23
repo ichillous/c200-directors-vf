@@ -3,11 +3,14 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 // Relative base so the same build works on GitHub Pages (a sub-path) and at a domain root.
+// The Android app bundles its own files, so it skips the service worker.
+const native = process.env.NATIVE === '1';
+
 export default defineConfig({
   base: './',
   plugins: [
     react(),
-    VitePWA({
+    !native && VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {

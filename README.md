@@ -1,8 +1,16 @@
 # C200 Viewfinder
 
-A director's viewfinder for one camera and one lens: the Canon C200 with the Sigma 18-35mm f/1.8 Art. It runs in the phone's browser, installs to the home screen, and works offline once installed.
+A director's viewfinder for one camera and one lens: the Canon C200 with the Sigma 18-35mm f/1.8 Art. It is an Android app you install straight from this repo's Releases page.
 
 Point the phone at a scene, turn the focal ring, and the white rectangle shows what the C200 would record at that focal length. Capture the frame and it is saved with its focal length, tag and shoot.
+
+## Install on the phone
+
+1. On the phone, open the [latest release](https://github.com/ichillous/c200-directors-vf/releases/latest) and download `C200-Viewfinder.apk`.
+2. Open the downloaded file. Android asks once to allow installs from the browser you used; allow it and tap Install.
+3. Open C200 Viewfinder and allow the camera.
+
+To update, download the newest APK the same way. It installs over the old one and keeps your frames.
 
 ## What it does
 
@@ -26,7 +34,7 @@ Phones crop a little for video, so if the lines look tighter or wider than the C
 
 ## Your data stays on your phone
 
-The app ships with no shoots and no shot lists. Frames are stored in the browser on the phone (IndexedDB) and are not uploaded anywhere.
+The app ships with no shoots and no shot lists. Frames are stored inside the app on the phone and are not uploaded anywhere.
 
 Shoots and shot lists come in through **Shoots → Import shoots and shot lists**, from a JSON file like [`tests/fixtures/sample-data.json`](tests/fixtures/sample-data.json):
 
@@ -51,10 +59,6 @@ Shoots and shot lists come in through **Shoots → Import shoots and shot lists*
 
 A shoot with a full date today or later shows as upcoming. `pos: 0` marks a list entry that needs no camera. Focal lengths outside 18 to 35 are pulled into range. Files named `my-data*.json` are git-ignored so a personal file cannot be committed by accident.
 
-## Install on the phone
-
-Open the site in Chrome, allow the camera, then choose **Add to Home screen** from the browser menu. It opens full screen in landscape.
-
 ## Develop
 
 ```sh
@@ -66,4 +70,14 @@ npm run preview    # serve the build on http://localhost:4173
 npm run e2e        # browser test with a fake camera (needs Playwright with Chromium; run preview first)
 ```
 
-Pushing to `main` runs the tests and deploys to GitHub Pages. The first time, turn Pages on in the repo: **Settings → Pages → Source: GitHub Actions**.
+Every push to `main` runs the tests, builds the APK on GitHub and publishes it as a new release.
+
+The Android project in `android/` is a [Capacitor](https://capacitorjs.com) shell around the web app. To build it yourself with Android Studio installed:
+
+```sh
+NATIVE=1 npm run build
+npx cap sync android
+cd android && ./gradlew assembleRelease
+```
+
+The APK is signed with `android/app/sideload.keystore`, a key kept in the repo on purpose so every build installs over the last. It is for installing the app yourself, not for the Play Store.

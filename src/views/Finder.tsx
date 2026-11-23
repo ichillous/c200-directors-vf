@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useCamera } from '../camera';
 import { saveImage } from '../images';
@@ -31,7 +32,9 @@ export function Finder() {
       : cam.status === 'starting'
         ? 'Starting the camera.'
         : cam.status === 'blocked'
-          ? 'The camera is blocked. Allow it in the browser’s site settings, or load a photo.'
+          ? Capacitor.isNativePlatform()
+            ? 'The camera is blocked. Allow it for C200 Viewfinder in Android settings, or load a photo.'
+            : 'The camera is blocked. Allow it in the browser’s site settings, or load a photo.'
           : cam.status === 'none'
             ? 'No camera on this device. Load a landscape photo taken at 1x to test the lines.'
             : '';
